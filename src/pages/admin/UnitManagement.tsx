@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useData } from "@/hooks/useData";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Building } from "lucide-react";
+import { Plus, Trash2, Building, Edit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/dialog";
 
 export const UnitManagement = () => {
-  const { units, addUnit, deleteUnit } = useData();
+  const { units, addUnit, updateUnit, deleteUnit } = useData();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
   const [unitName, setUnitName] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,13 +35,31 @@ export const UnitManagement = () => {
       return;
     }
 
-    addUnit({ name: unitName.trim() });
-    toast({
-      title: "Sucesso",
-      description: "Unidade criada com sucesso",
-    });
+    if (isEditMode && editingUnitId) {
+      updateUnit(editingUnitId, { name: unitName.trim() });
+      toast({
+        title: "Sucesso",
+        description: "Unidade atualizada com sucesso",
+      });
+    } else {
+      addUnit({ name: unitName.trim() });
+      toast({
+        title: "Sucesso",
+        description: "Unidade criada com sucesso",
+      });
+    }
+    
     setUnitName('');
     setIsDialogOpen(false);
+    setIsEditMode(false);
+    setEditingUnitId(null);
+  };
+
+  const handleEdit = (unit: any) => {
+    setIsEditMode(true);
+    setEditingUnitId(unit.id);
+    setUnitName(unit.name);
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -50,6 +70,13 @@ export const UnitManagement = () => {
     });
   };
 
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setIsEditMode(false);
+    setEditingUnitId(null);
+    setUnitName('');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -58,7 +85,7 @@ export const UnitManagement = () => {
           <p className="text-muted-foreground">Administre as unidades hospitalares</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -67,9 +94,9 @@ export const UnitManagement = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Criar Nova Unidade</DialogTitle>
+              <DialogTitle>{isEditMode ? 'Editar Unidade' : 'Criar Nova Unidade'}</DialogTitle>
               <DialogDescription>
-                Digite o nome da nova unidade hospitalar
+                {isEditMode ? 'Altere o nome da unidade hospitalar' : 'Digite o nome da nova unidade hospitalar'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +111,7 @@ export const UnitManagement = () => {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Criar Unidade
+                {isEditMode ? 'Atualizar Unidade' : 'Criar Unidade'}
               </Button>
             </form>
           </DialogContent>
@@ -106,14 +133,24 @@ export const UnitManagement = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(unit.id)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEdit(unit)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDelete(unit.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}

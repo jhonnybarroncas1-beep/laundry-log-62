@@ -112,6 +112,22 @@ export const useData = () => {
     localStorage.setItem('rol_clothing_types', JSON.stringify(updatedTypes));
   };
 
+  const updateUnit = (id: string, unitData: Partial<Omit<Unit, 'id' | 'createdAt'>>) => {
+    const updatedUnits = units.map(unit => 
+      unit.id === id ? { ...unit, ...unitData } : unit
+    );
+    setUnits(updatedUnits);
+    localStorage.setItem('rol_units', JSON.stringify(updatedUnits));
+  };
+
+  const updateClothingType = (id: string, typeData: Partial<Omit<ClothingType, 'id' | 'createdAt'>>) => {
+    const updatedTypes = clothingTypes.map(type => 
+      type.id === id ? { ...type, ...typeData } : type
+    );
+    setClothingTypes(updatedTypes);
+    localStorage.setItem('rol_clothing_types', JSON.stringify(updatedTypes));
+  };
+
   return {
     units,
     clothingTypes,
@@ -122,6 +138,8 @@ export const useData = () => {
     addUser,
     addROL,
     updateUser,
+    updateUnit,
+    updateClothingType,
     deleteUser,
     deleteUnit,
     deleteClothingType,
